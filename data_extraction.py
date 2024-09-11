@@ -16,7 +16,7 @@ class DataExtractor:
             return None
         
         try:
-            query = f"SELLECT * FROM {table_name}"
+            query = f"SELECT * FROM {table_name}"
             df = pd.read_sql(query, db_connector.engine)
             return df
         except Exception as e:

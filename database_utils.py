@@ -1,153 +1,162 @@
-import psycopg2
-from psycopg2 import sql
-import pandas as pd
-from sqlalchemy import create_engine
 import yaml
+from sqlalchemy import create_engine, inspect
+import pandas as pd
+# from data_extraction import DataExtractor
+# from data_cleaning import DataCleaning
 
 class DatabaseConnector:
-    def __init__(self, host, database, user, password, port=5433):
-        self.host = host
-        self.database = database
-        self.user = user
-        self.password = password
-        self.port = port
-        self.conn = None
-        self.cursor = None
+    def __init__(self):
+        self.credentials = None
         self.engine = None
 
-        self.creds = self.read_db_creds()
-
     def read_db_creds(self):
+        """
+        Reads the database credentials from the db_creds.yaml file
+        and returns them as a dictionary.
+        """
         try:
             with open('db_creds.yaml', 'r') as file:
-                creds = yaml.safe_load(file)
-            return creds
+                self.credentials = yaml.safe_load(file)
+            return self.credentials
         except FileNotFoundError:
-            print("Credentials file 'db_creds.yaml' not found.")
+            print("Error: db_creds.yaml file not found.")
             return None
         except yaml.YAMLError as e:
             print(f"Error reading YAML file: {e}")
             return None
-        
-    def init_db_engine(self):
-        if not self.creds:
-            print("Database credentials are not available.")
-            return None
-        
-        try:
-            db_url = f"postgresql://{self.creds['user']}:{self.creds['password']}@{self.creds['host']}:{self.creds['port']}/{self.creds['database']}"
-            self.engine = create_engine(db_url)
-            return self.engine
-        except KeyError as e:
-            print(f"Missing credential: {e}")
-            return None
-        except Exception as e:
-            print(f"Error initializing database engine: {e}")
-            return None
-        
+
+    def init_db_engine(self, local = False):
+        """
+        Initializes and returns an SQLAlchemy database engine
+        using the credentials from read_db_creds.
+        """
+
+        self.read_db_creds()
+
+        if local:
+            try:
+                db_url = f"postgresql://{self.credentials['LOCAL_USER']}:{self.credentials['LOCAL_PASSWORD']}@{self.credentials['LOCAL_HOST']}:{self.credentials['LOCAL_PORT']}/{self.credentials['LOCAL_DATABASE']}"
+                self.engine = create_engine(db_url)
+                print("Database engine initialized successfully.")
+                return self.engine
+            except Exception as e:
+                print(f"Error initializing database engine: {e}")
+                return None
+        else:
+            if self.credentials:
+                try:
+                    db_url = f"postgresql://{self.credentials['RDS_USER']}:{self.credentials['RDS_PASSWORD']}@{self.credentials['RDS_HOST']}:{self.credentials['RDS_PORT']}/{self.credentials['RDS_DATABASE']}"
+                    self.engine = create_engine(db_url)
+                    print("Database engine initialized successfully.")
+                    return self.engine
+                except Exception as e:
+                    print(f"Error initializing database engine: {e}")
+                    return None
+            else:
+                print("No credentials available. Cannot initialize database engine.")
+                return None
+            
+
     def list_db_tables(self):
         if not self.engine:
-            self.engine = self.init_db_engine()
+            self.init_db_engine()
 
-        if not self.engine:
-            print("Database engine is not initialized.")
+        if self.engine:
+            try:
+                inspector = inspect(self.engine)
+                tables = inspector.get_table_names()
+                print("Tables in the database:")
+                for table in tables:
+                    print(f"- {table}")
+                return tables
+            except Exception as e:
+                print(f"Error listing database tables: {e}")
+                return None
+        else:
+            print("No database engine available. Cannot list tables.")
             return None
-        
+
+    def upload_to_db(self, df, table_name):
+        """
+        Uploads a Pandas DataFrame to a specified table in the database.
+
+        :param df: Pandas DataFrame to upload
+        :param table_name: Name of the table to upload the data to
+        """
+
+        self.init_db_engine(local=True)
         try:
-            inspector = inspector(self.engine)
-            return inspector.get_table_names()
+            df.to_sql(table_name, self.engine, if_exists='replace', index=False)
+            print(f"Data successfully uploaded to table '{table_name}'.")
         except Exception as e:
-            print(f"Error listing database tables: {e}")
-            return None
+            print(f"Error uploading data to table '{table_name}': {e}")
+
+    def extract_clean_upload_users(self):
+        """
+        Extracts user data, cleans it, and uploads it to the 'dim_users' table in the database.
+        """
+        # Step 1: Extract user data
+        print("Extracting user data...")
+        user_data = self.data_extractor.retrieve_user_data(self)
         
-        
-        
-
-
-    def connect(self):
-        """
-        Establishes a connection to the database.
-        """
-        try:
-            self.conn = psycopg2.connect(
-                host=self.host,
-                database=self.database,
-                user=self.user,
-                password=self.password,
-                port=self.port
-            )
-            self.cursor = self.conn.cursor()
-            print("Connected to the database successfully.")
-        except (Exception, psycopg2.Error) as error:
-            print(f"Error while connecting to PostgreSQL: {error}")
-
-    def create_table(self, table_name, columns):
-        """
-        Creates a new table in the database.
-
-        Args:
-            table_name (str): Name of the table to create.
-            columns (dict): Dictionary of column names and their data types.
-        """
-        try:
-            columns_str = ", ".join([f"{col} {dtype}" for col, dtype in columns.items()])
-            create_table_query = sql.SQL(f"CREATE TABLE IF NOT EXISTS {table_name} ({columns_str})")
-            self.cursor.execute(create_table_query)
-            self.conn.commit()
-            print(f"Table '{table_name}' created successfully.")
-        except (Exception, psycopg2.Error) as error:
-            print(f"Error creating table: {error}")
-
-    def upload_data(self, table_name, data):
-        """
-        Uploads data to the specified table.
-
-        Args:
-            table_name (str): Name of the table to upload data to.
-            data (pandas.DataFrame): Data to be uploaded.
-        """
-        try:
-            if self.engine is None:
-                self.engine = create_engine(f'postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}')
+        if user_data is not None:
+            print(f"Retrieved {len(user_data)} rows of user data.")
             
-            data.to_sql(table_name, self.engine, if_exists='append', index=False)
-            print(f"Data uploaded to table '{table_name}' successfully.")
-        except Exception as error:
-            print(f"Error uploading data: {error}")
+            # Step 2: Clean user data
+            print("Cleaning user data...")
+            cleaned_user_data = self.data_cleaner.clean_user_data(user_data)
+            print(f"Cleaned data now has {len(cleaned_user_data)} rows.")
+            
+            # Step 3: Upload cleaned data to the database
+            print("Uploading cleaned user data to database...")
+            self.upload_to_db(cleaned_user_data, 'dim_users')
+            
+            print("Process completed successfully.")
+        else:
+            print("Failed to retrieve user data. Process aborted.")
 
-    def execute_query(self, query):
+    def clean_and_upload_card_data(self, url = "https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf"):
         """
-        Executes a SQL query.
+        Extracts card data from a PDF, cleans it, and uploads it to the 'dim_card_details' table in the database.
+        
+        :param pdf_link: URL or file path of the PDF document containing card data
+        """
 
-        Args:
-            query (str): SQL query to execute.
-
-        Returns:
-            list: Result of the query.
-        """
-        try:
-            self.cursor.execute(query)
-            return self.cursor.fetchall()
-        except (Exception, psycopg2.Error) as error:
-            print(f"Error executing query: {error}")
-            return None
-
-    def close_connection(self):
-        """
-        Closes the database connection.
-        """
-        if self.conn:
-            if self.cursor:
-                self.cursor.close()
-            self.conn.close()
-            print("Database connection closed.")
+        # Step 1: Extract card data from PDF
+        print("Extracting card data from PDF...")
+        card_data = self.data_extractor.retrieve_pdf_data(url)
+        
+        if card_data is not None:
+            print(f"Retrieved {len(card_data)} rows of card data.")
+            
+            # Step 2: Clean card data
+            print("Cleaning card data...")
+            cleaned_card_data = self.data_cleaner.clean_card_data(card_data)
+            print(f"Cleaned data now has {len(cleaned_card_data)} rows.")
+            
+            # Step 3: Upload cleaned data to the database
+            print("Uploading cleaned card data to database...")
+            self.upload_to_db(cleaned_card_data, 'dim_card_details')
+            
+            print("Process completed successfully.")
+        else:
+            print("Failed to retrieve card data from PDF. Process aborted.")
 
 # Example usage:
-# db = DatabaseConnector(host='localhost', database='sales_data', user='your_username', password='your_password')
-# db.connect()
-# db.create_table('customers', {'id': 'SERIAL PRIMARY KEY', 'name': 'VARCHAR(100)', 'email': 'VARCHAR(100)'})
-# data = pd.DataFrame({'name': ['John Doe', 'Jane Smith'], 'email': ['john@example.com', 'jane@example.com']})
-# db.upload_data('customers', data)
-# results = db.execute_query("SELECT * FROM customers")
-# print(results)
-# db.close_connection()
+if __name__ == "__main__":
+    connector = DatabaseConnector()
+    engine = connector.init_db_engine()
+    if engine:
+        print("Database engine created successfully.")
+        # You can now use this engine to interact with your database
+    else:
+        print("Failed to create database engine.")
+
+    tables = connector.list_db_tables()
+    if tables:
+        print(f"Successfully retrieved {len(tables)} tables.")
+    else:
+        print("Failed to retrieve database tables.")
+
+
+    
