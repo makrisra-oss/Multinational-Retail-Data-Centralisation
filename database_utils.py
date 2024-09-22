@@ -2,79 +2,75 @@ import yaml
 from sqlalchemy import create_engine, inspect
 import pandas as pd
 # from data_extraction import DataExtractor
-# from data_cleaning import DataCleaning
+from data_cleaning import DataCleaning
 
 class DatabaseConnector:
     def __init__(self):
-        self.credentials = None
         self.engine = None
 
-    def read_db_creds(self):
+    def read_db_creds(self, yaml_file):
         """
         Reads the database credentials from the db_creds.yaml file
         and returns them as a dictionary.
         """
-        try:
-            with open('db_creds.yaml', 'r') as file:
-                self.credentials = yaml.safe_load(file)
-            return self.credentials
-        except FileNotFoundError:
-            print("Error: db_creds.yaml file not found.")
-            return None
-        except yaml.YAMLError as e:
-            print(f"Error reading YAML file: {e}")
-            return None
 
-    def init_db_engine(self, local = False):
+        with open(yaml_file, 'r') as file:
+            credentials = yaml.safe_load(file)
+        return credentials
+        
+        
+        
+        # try:
+        #     with open('db_creds.yaml', 'r') as file:
+        #         self.credentials = yaml.safe_load(file)
+        #     return self.credentials
+        # except FileNotFoundError:
+        #     print("Error: db_creds.yaml file not found.")
+        #     return None
+        # except yaml.YAMLError as e:
+        #     print(f"Error reading YAML file: {e}")
+        #     return None
+
+    def init_db_engine(self, yaml_file):
         """
         Initializes and returns an SQLAlchemy database engine
         using the credentials from read_db_creds.
         """
 
-        self.read_db_creds()
-
-        if local:
-            try:
-                db_url = f"postgresql://{self.credentials['LOCAL_USER']}:{self.credentials['LOCAL_PASSWORD']}@{self.credentials['LOCAL_HOST']}:{self.credentials['LOCAL_PORT']}/{self.credentials['LOCAL_DATABASE']}"
-                self.engine = create_engine(db_url)
-                print("Database engine initialized successfully.")
-                return self.engine
-            except Exception as e:
-                print(f"Error initializing database engine: {e}")
-                return None
-        else:
-            if self.credentials:
-                try:
-                    db_url = f"postgresql://{self.credentials['RDS_USER']}:{self.credentials['RDS_PASSWORD']}@{self.credentials['RDS_HOST']}:{self.credentials['RDS_PORT']}/{self.credentials['RDS_DATABASE']}"
-                    self.engine = create_engine(db_url)
-                    print("Database engine initialized successfully.")
-                    return self.engine
-                except Exception as e:
-                    print(f"Error initializing database engine: {e}")
-                    return None
-            else:
-                print("No credentials available. Cannot initialize database engine.")
-                return None
+        credentials = self.read_db_creds(yaml_file)
+        engine = create_engine(f"postgresql://{credentials['USER']}:{credentials['PASSWORD']}@{credentials['HOST']}:{credentials['PORT']}/{credentials['DATABASE']}")
+        return engine
             
 
     def list_db_tables(self):
-        if not self.engine:
-            self.init_db_engine()
 
-        if self.engine:
-            try:
-                inspector = inspect(self.engine)
-                tables = inspector.get_table_names()
-                print("Tables in the database:")
-                for table in tables:
-                    print(f"- {table}")
-                return tables
-            except Exception as e:
-                print(f"Error listing database tables: {e}")
-                return None
-        else:
-            print("No database engine available. Cannot list tables.")
-            return None
+        inspector = inspect(self.init_db_engine("db_creds_RDS.yaml"))
+        tables = inspector.get_table_names()
+        for table in tables:
+            print(f"- {table}")
+        return tables
+    
+    # def extract_rds_table(self, engine, table_name):
+    #     table = pd.read_sql_table(table_name, engine)
+    #     return table
+
+        # if not self.engine:
+        #     self.init_db_engine()
+
+        # if self.engine:
+        #     try:
+        #         inspector = inspect(self.engine)
+        #         tables = inspector.get_table_names()
+        #         print("Tables in the database:")
+        #         for table in tables:
+        #             print(f"- {table}")
+        #         return tables
+        #     except Exception as e:
+        #         print(f"Error listing database tables: {e}")
+        #         return None
+        # else:
+        #     print("No database engine available. Cannot list tables.")
+        #     return None
 
     def upload_to_db(self, df, table_name):
         """
@@ -83,13 +79,22 @@ class DatabaseConnector:
         :param df: Pandas DataFrame to upload
         :param table_name: Name of the table to upload the data to
         """
+        
+        # Upload pandas df to db
+        df.to_sql(table_name, self.init_db_engine('db_creds_local.yaml'), if_exists='replace')
+        result = f"Data successfully uploaded to table '{table_name}'."
+        print(result)
+        return result
 
-        self.init_db_engine(local=True)
-        try:
-            df.to_sql(table_name, self.engine, if_exists='replace', index=False)
-            print(f"Data successfully uploaded to table '{table_name}'.")
-        except Exception as e:
-            print(f"Error uploading data to table '{table_name}': {e}")
+
+
+
+
+        # try:
+        #     df.to_sql(table_name, self.engine, if_exists='replace', index=False)
+        #     print(f"Data successfully uploaded to table '{table_name}'.")
+        # except Exception as e:
+        #     print(f"Error uploading data to table '{table_name}': {e}")
 
     def extract_clean_upload_users(self):
         """
@@ -97,7 +102,7 @@ class DatabaseConnector:
         """
         # Step 1: Extract user data
         print("Extracting user data...")
-        user_data = self.data_extractor.retrieve_user_data(self)
+        user_data = self.extractor.retrieve_user_data(self)
         
         if user_data is not None:
             print(f"Retrieved {len(user_data)} rows of user data.")
@@ -142,21 +147,37 @@ class DatabaseConnector:
         else:
             print("Failed to retrieve card data from PDF. Process aborted.")
 
+    def upload_clean_store_data(self, df):
+        cleaned_store_data = cleaning.clean_store_data(df)
+        return cleaned_store_data
+
 # Example usage:
 if __name__ == "__main__":
     connector = DatabaseConnector()
-    engine = connector.init_db_engine()
-    if engine:
-        print("Database engine created successfully.")
-        # You can now use this engine to interact with your database
-    else:
-        print("Failed to create database engine.")
+    cleaning = DataCleaning()
+    
+    engine = connector.init_db_engine("db_creds_local.yaml")
+    print(engine)
 
-    tables = connector.list_db_tables()
-    if tables:
-        print(f"Successfully retrieved {len(tables)} tables.")
-    else:
-        print("Failed to retrieve database tables.")
+    table_list = connector.list_db_tables()
+    print(f"table list:", table_list)
+
+    # df = connector.extract_rds_table(engine)
+    # df.to_csv("users_table.csv")
+
+
+
+    # if engine:
+    #     print("Database engine created successfully.")
+    #     # You can now use this engine to interact with your database
+    # else:
+    #     print("Failed to create database engine.")
+
+    # tables = connector.list_db_tables()
+    # if tables:
+    #     print(f"Successfully retrieved {len(tables)} tables.")
+    # else:
+    #     print("Failed to retrieve database tables.")
 
 
     
