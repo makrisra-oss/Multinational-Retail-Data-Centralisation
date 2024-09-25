@@ -10,7 +10,7 @@ class DataExtractor:
         pass
 
     def read_rds_table(self, db_connector, table_name):
-        
+
         db_connector.engine = db_connector.init_db_engine("db_creds_RDS.yaml")
         query = f"SELECT * FROM {table_name}"
         df = pd.read_sql(query, db_connector.engine)
@@ -36,22 +36,34 @@ class DataExtractor:
             print(f"Error extracting data from API: {e}")
             return None
         
-    def extract_from_s3(self, bucket_name, object_key, aws_access_key_id, aws_secret_access_key):
+    # def extract_from_s3(self, bucket_name, object_key, aws_access_key_id, aws_secret_access_key):
 
-        try:
-            s3 = boto3.client('s3',
-                              aws_access_key_id=aws_access_key_id,
-                              aws_secret_access_key=aws_secret_access_key)
+    #     try:
+    #         s3 = boto3.client('s3',
+    #                           aws_access_key_id=aws_access_key_id,
+    #                           aws_secret_access_key=aws_secret_access_key)
             
-            obj = s3.get_object(Bucket=bucket_name, Key=object_key)
-            data = obj['Body'].read()
+    #         obj = s3.get_object(Bucket=bucket_name, Key=object_key)
+    #         data = obj['Body'].read()
 
-            df = pd.read_csv(io.BytesIO(data))
-            return df
-        except Exception as e:
-            print(f"Error extracting data from S3: {e}")
-            return None
+    #         df = pd.read_csv(io.BytesIO(data))
+    #         return df
+    #     except Exception as e:
+    #         print(f"Error extracting data from S3: {e}")
+    #         return None
+
+    def extract_from_s3(self, bucket_name, s3_key, local_path):
+        s3 = boto3.client('s3')
+        s3.download_file(bucket_name, s3_key, local_path)
+
+        df = pd.read_csv(local_path)
+
+        return df
     
+    # def retrieve_json_data(self, json_link):
+        response = requests.get(json_link)
+        
+        return 
         
     def retrieve_pdf_data(self, pdf_link):
         """
@@ -133,7 +145,7 @@ if __name__ == "__main__":
     headers = {
         "x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"
     }
-    
+
     # Retrieve a store
     store_df = extractor.retrieve_stores_data(retrieve_a_store_endpoint)
     print(store_df)
@@ -152,7 +164,10 @@ if __name__ == "__main__":
     return_pdf = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
     print(return_pdf)
     
-    
+    #Retrieve AWS csv
+    product_df = extractor.extract_from_s3(bucket_name='data-handling-public', s3_key='products.csv', local_path='/opt/homebrew/Caskroom/miniconda/base/envs/mrdc/local_products.csv')
+    print(product_df)
+
     # if num_stores is not None:
     #     print(f"Total number of stores: {num_stores}")
     # else:
