@@ -256,47 +256,13 @@ class DataCleaning:
         return orders_df
     
     def clean_date_events_data(self, date_events_df):
+        date_events_df = date_events_df.dropna(how='all')
         print(f"The date events data: ", date_events_df)
-        
 
-    @staticmethod
-    def clean_phone_number(phone):
-        if pd.isna(phone):
-            return np.nan
-        
-        phone = re.sub(r'\D', '', str(phone))
+        date_events_df = date_events_df.drop_duplicates()
 
-        if 10 <= len(phone) <= 15:
-            return phone
-        return np.nan
-    
-    @staticmethod
-    def clean_email(email):
-        if pd.isna(email):
-            return np.nan
+        return date_events_df
         
-        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        if re.match(email_regex, str(email)):
-            return email.lower()
-        return np.nan
-    
-    @staticmethod
-    def clean_country_code(code):
-        if pd.isna(code):
-            return np.nan
-        
-        code = str(code).upper().strip()
-        if len(code) == 2 and code.isalpha():
-            return code
-        return np.nan
-    
-    @staticmethod
-    def clean_address(address):
-        if pd.isna(address):
-            return np.nan
-        
-        address = re.sub(r'\s+', '', str(address).replace('\n', '')).strip()
-        return address if address else np.nan
 
 if __name__ == "__main__":
     from data_extraction import DataExtractor
@@ -306,10 +272,10 @@ if __name__ == "__main__":
 
     raw_user_df = pd.read_csv('users_table.csv')
     raw_card_df = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
-    raw_store_df = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
-    raw_product_df = extractor.extract_from_s3(bucket_name='data-handling-public', s3_key='products.csv', local_path='/opt/homebrew/Caskroom/miniconda/base/envs/mrdc/local_products.csv')
+    #raw_store_df = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
+    raw_product_df = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', file_name='local_products.csv')
     raw_orders_df = pd.read_csv('orders_table.csv')
-    raw_date_events_df = extractor.extract_from_s3(bucket_name='data-handling-public', object='date_details.json', local_path='/opt/homebrew/Caskroom/miniconda/base/envs/mrdc/date_details.json')
+    raw_date_events_df = pd.DataFrame(extractor.retrieve_json_data(url='https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json'))
 
 
     cleaned_weights_df = cleaning.convert_product_weights(raw_product_df)
@@ -317,8 +283,8 @@ if __name__ == "__main__":
     print(cleaning.clean_user_data(raw_user_df))
     print(cleaning.clean_card_data(raw_card_df))
     print(raw_card_df.columns)
-    print(cleaning.clean_store_data(raw_store_df).columns)
-    print(raw_store_df.columns)
+    #print(cleaning.clean_store_data(raw_store_df).columns)
+    #print(raw_store_df.columns)
     print(cleaned_weights_df['weight'].head())
     print(raw_product_df.columns)
     print(cleaning.clean_products_data(raw_product_df))

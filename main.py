@@ -1,6 +1,7 @@
 from data_cleaning import DataCleaning
 from data_extraction import DataExtractor
 from database_utils import DatabaseConnector
+import pandas as pd
 
 connector = DatabaseConnector()
 extractor = DataExtractor()
@@ -40,14 +41,16 @@ def user_pipeline():
     user_table = extractor.read_rds_table(connector, "legacy_users")
     card_table = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
     store_table = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
-    products_table = extractor.extract_from_s3(bucket_name='data-handling-public', s3_key='products.csv', local_path='/opt/homebrew/Caskroom/miniconda/base/envs/mrdc/local_products.csv')
+    products_table = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', file_name='local_products.csv')
     orders_table = extractor.read_rds_table(connector, table_name='orders_table')
+    date_events_table = pd.DataFrame(extractor.retrieve_json_data(url="https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json"))
 
     cleaned_user_data = cleaning.clean_user_data(user_table)
     cleaned_card_data = cleaning.clean_card_data(card_table)
     cleaned_store_data = cleaning.clean_store_data(store_table)
     cleaned_products_data = cleaning.clean_products_data(products_table)
     cleaned_orders_data = cleaning.clean_orders_data(orders_table)
+    cleaned_date_events_data = cleaning.clean_date_events_data(date_events_table)
 
     connector_local = DatabaseConnector()
 
@@ -64,6 +67,7 @@ def user_pipeline():
     upload_result = connector_local.upload_to_db(cleaned_store_data, "dim_store_details")
     upload_result = connector_local.upload_to_db(cleaned_products_data, "dim_products")
     upload_result = connector.upload_to_db(cleaned_orders_data, "orders_table")
+    upload_result = connector.upload_to_db(cleaned_date_events_data, "dim_date_times")
 
     print(f"test: {type(cleaned_user_data)}")
     print(len(cleaned_user_data))
@@ -85,6 +89,10 @@ def user_pipeline():
     print(f"test: {type(cleaned_orders_data)}")
     print(len(cleaned_orders_data))
     print(cleaned_orders_data)
+
+    print(f"test: {type(cleaned_date_events_data)}")
+    print(len(cleaned_date_events_data))
+    print(cleaned_date_events_data)
     
     
     print(upload_result)
