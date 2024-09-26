@@ -14,6 +14,8 @@ class DataExtractor:
         db_connector.engine = db_connector.init_db_engine("db_creds_RDS.yaml")
         query = f"SELECT * FROM {table_name}"
         df = pd.read_sql(query, db_connector.engine)
+
+
         return df
 
     def read_csv_file(self, file_path):
@@ -52,9 +54,9 @@ class DataExtractor:
     #         print(f"Error extracting data from S3: {e}")
     #         return None
 
-    def extract_from_s3(self, bucket_name, s3_key, local_path):
+    def extract_from_s3(self, bucket_name, object, local_path):
         s3 = boto3.client('s3')
-        s3.download_file(bucket_name, s3_key, local_path)
+        s3.download_file(bucket_name, object, local_path)
 
         df = pd.read_csv(local_path)
 
@@ -147,27 +149,33 @@ if __name__ == "__main__":
     }
 
     # Retrieve a store
-    store_df = extractor.retrieve_stores_data(retrieve_a_store_endpoint)
-    print(store_df)
+    # store_df = extractor.retrieve_stores_data(retrieve_a_store_endpoint)
+    # print(store_df)
 
     store_numbers = list(range(1, 452))
 
     # Retrieve number of stores
-    num_stores = extractor.list_number_of_stores(number_stores_endpoint, headers)
-    print(num_stores)
+    # num_stores = extractor.list_number_of_stores(number_stores_endpoint, headers)
+    # print(num_stores)
 
-    #Retrieve and read RDS table
-    read_rds = extractor.read_rds_table(db_connector=connector, table_name='legacy_users')
-    print(read_rds)
+    # #Retrieve and read RDS table legacy_users
+    # read_rds_users = extractor.read_rds_table(db_connector=connector, table_name='legacy_users')
+    # print(read_rds_users)
 
-    # # #Retreive PDF data
-    return_pdf = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
-    print(return_pdf)
+    # #Retrieve and read RDS table orders
+    # read_rds_orders = extractor.read_rds_table(db_connector=connector, table_name='orders_table')
+    # print(f"Read RDS Orders: ", read_rds_orders)
+
+    # # # #Retreive PDF data
+    # return_pdf = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
+    # print(return_pdf)
     
-    #Retrieve AWS csv
-    product_df = extractor.extract_from_s3(bucket_name='data-handling-public', s3_key='products.csv', local_path='/opt/homebrew/Caskroom/miniconda/base/envs/mrdc/local_products.csv')
-    print(product_df)
-
+    # #Retrieve AWS csv
+    # product_df = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', local_path='/opt/homebrew/Caskroom/miniconda/base/envs/mrdc/local_products.csv')
+    # print(product_df)
+    date_events_df = extractor.extract_from_s3(bucket_name='data-handling-public', object='date_details.json', local_path ='date_details.json')
+    
+    print(date_events_df)
     # if num_stores is not None:
     #     print(f"Total number of stores: {num_stores}")
     # else:

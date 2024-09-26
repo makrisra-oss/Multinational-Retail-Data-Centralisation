@@ -43,34 +43,13 @@ class DatabaseConnector:
             
 
     def list_db_tables(self):
-
+        
         inspector = inspect(self.init_db_engine("db_creds_RDS.yaml"))
         tables = inspector.get_table_names()
         for table in tables:
-            print(f"- {table}")
+            print(f"table names- {table}")
         return tables
-    
-    # def extract_rds_table(self, engine, table_name):
-    #     table = pd.read_sql_table(table_name, engine)
-    #     return table
 
-        # if not self.engine:
-        #     self.init_db_engine()
-
-        # if self.engine:
-        #     try:
-        #         inspector = inspect(self.engine)
-        #         tables = inspector.get_table_names()
-        #         print("Tables in the database:")
-        #         for table in tables:
-        #             print(f"- {table}")
-        #         return tables
-        #     except Exception as e:
-        #         print(f"Error listing database tables: {e}")
-        #         return None
-        # else:
-        #     print("No database engine available. Cannot list tables.")
-        #     return None
 
     def upload_to_db(self, df, table_name):
         """
