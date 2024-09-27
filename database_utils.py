@@ -17,19 +17,6 @@ class DatabaseConnector:
         with open(yaml_file, 'r') as file:
             credentials = yaml.safe_load(file)
         return credentials
-        
-        
-        
-        # try:
-        #     with open('db_creds.yaml', 'r') as file:
-        #         self.credentials = yaml.safe_load(file)
-        #     return self.credentials
-        # except FileNotFoundError:
-        #     print("Error: db_creds.yaml file not found.")
-        #     return None
-        # except yaml.YAMLError as e:
-        #     print(f"Error reading YAML file: {e}")
-        #     return None
 
     def init_db_engine(self, yaml_file):
         """
@@ -64,16 +51,6 @@ class DatabaseConnector:
         result = f"Data successfully uploaded to table '{table_name}'."
         print(result)
         return result
-
-
-
-
-
-        # try:
-        #     df.to_sql(table_name, self.engine, if_exists='replace', index=False)
-        #     print(f"Data successfully uploaded to table '{table_name}'.")
-        # except Exception as e:
-        #     print(f"Error uploading data to table '{table_name}': {e}")
 
     def extract_clean_upload_users(self):
         """

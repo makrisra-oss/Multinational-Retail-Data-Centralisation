@@ -38,22 +38,6 @@ class DataExtractor:
         except requests.RequestException as e:
             print(f"Error extracting data from API: {e}")
             return None
-        
-    # def extract_from_s3(self, bucket_name, object_key, aws_access_key_id, aws_secret_access_key):
-
-    #     try:
-    #         s3 = boto3.client('s3',
-    #                           aws_access_key_id=aws_access_key_id,
-    #                           aws_secret_access_key=aws_secret_access_key)
-            
-    #         obj = s3.get_object(Bucket=bucket_name, Key=object_key)
-    #         data = obj['Body'].read()
-
-    #         df = pd.read_csv(io.BytesIO(data))
-    #         return df
-    #     except Exception as e:
-    #         print(f"Error extracting data from S3: {e}")
-    #         return None
 
     def extract_from_s3(self, bucket_name, object, file_name):
         s3 = boto3.client('s3')
@@ -69,10 +53,6 @@ class DataExtractor:
             df = json.load(url)
         return df
     
-    # def retrieve_json_data(self, json_link):
-        response = requests.get(json_link)
-        
-        return 
         
     def retrieve_pdf_data(self, pdf_link):
         """
@@ -81,10 +61,6 @@ class DataExtractor:
         :param pdf_link: URL or file path of the PDF
         :return: pandas DataFrame containing the extracted data
         """
-
-        # df = tabula.read_pdf(pdf_link, pages='all')
-        # print(df)
-        # return df
     
         tables = tabula.read_pdf(pdf_link, pages='all', multiple_tables=True)
         
@@ -104,7 +80,6 @@ class DataExtractor:
         :param headers: Dictionary containing the API key
         :return: Number of stores (int) or None if the request fails
         """
-        # try:
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status() # Raises an HTTPError for bad responses
 
