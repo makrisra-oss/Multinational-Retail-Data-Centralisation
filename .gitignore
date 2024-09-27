@@ -2,7 +2,7 @@ db_creds.yaml
 *.yaml
 card_details.pdf
 clean_users_table.csv
-clean_orders_data.csv
+cleaned_orders_data.csv
 cleaned_store_data.csv
 date_details.json
 date_events
