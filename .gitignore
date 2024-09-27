@@ -1,5 +1,6 @@
 db_creds.yaml
 *.yaml
+card_details.pdf
 clean_users_table.csv
 clean_orders_data.csv
 cleaned_store_data.csv
@@ -13,7 +14,8 @@ oop.py
 orders_table.csv
 raw_product_df
 ryan.yaml
-sandbox_text.ipynb
+sandbox_test.ipynb
+sandbox.ipynb
 sandbox2.ipynb
 sandbox3.ipynb
 sandbox4.ipynb
