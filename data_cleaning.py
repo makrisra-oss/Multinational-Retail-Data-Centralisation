@@ -16,31 +16,23 @@ class DataCleaning:
 
         # drop Unnamed columns
         # df = df.drop('Unnamed: 0', axis=1)
-
         user_df = user_df.loc[:, ~user_df.columns.str.contains('^Unnamed')]
         print(user_df.columns)
+
         # replace GGB with GB > incorrectly typed v
-
-
-
         user_df['country_code'] = user_df['country_code'].str.replace('GGB', 'GB')
         print(id(user_df))
+
         #Rows filled with wrong information
+        #drop country_codes with more than 2 characters
         user_df = user_df[user_df['country_code'].str.len() < 3]
 
-        #drop country_codes with more than 2 characters
-
-        # example_series = example_series.str.replace('@', 'o')
-    
-
         #df.drop(df.loc[df['line_race']==0].index, inplace=True)
-
         date_columns = ['date_of_birth', 'join_date']
         for col in date_columns:
             user_df[col] = pd.to_datetime(user_df[col], format='%Y-%m-%d', errors='coerce')
 
         # df = df.drop(df[df.score < 50].index)
-
         return user_df
     
 
@@ -195,50 +187,6 @@ class DataCleaning:
         products_df = self.convert_product_weights(products_df) #assigning clean weights to the products_df
 
         return products_df
-        # Return the cleaned DataFrame
-
-        # # Remove rows where all values are Null
-        # products_df = products_df.dropna(how='all')
-
-        # # Remove unnamed columns
-        # products_df = products_df.loc[:, ~products_df.columns.str.contains('Unnamed')]
-
-        # # Remove rows where the weight column contains 'nankg' or is null
-        # products_df = products_df[~products_df['weight'].isin(['nankg', None])]
-
-        # # Remove duplicates
-        # products_df = products_df.drop_duplicates()
-
-        # # Create a new list for the 'removed' column
-        # new_removed = []
-        # for item in products_df['removed']:
-        #     # Correct the typo "Still_avaliable" to "Still_available"
-        #     if item == "Still_avaliable":  
-        #         new_removed.append("Still_available")
-        #     else:
-        #         new_removed.append(item)
-
-        # # Assign the corrected 'removed' list back to the original DataFrame
-        # products_df['removed'] = new_removed
-
-        # new_product_names = []
-        # for item in products_df['product_name']:
-        #     if isinstance(item, str):
-        #         new_item = item.strip('"')
-        #         new_product_names.append(new_item)
-        #     else:
-        #         new_product_names.append(item)
-
-        # products_df['product_name'] = new_product_names
-
-        # # Clean product weights
-        # products_df = self.convert_product_weights(products_df)  # Assigning clean weights to the products_df
-
-        # # Final check: remove rows that are still null or contain 'nankg' in any column
-        # products_df = products_df.dropna()  # Remove any remaining rows with null values
-        # products_df = products_df[~products_df.isin(['nankg']).any(axis=1)]  # Final check for 'nankg'
-
-        # return products_df
 
     def clean_orders_data(self, orders_df):
         #Drop rows which are NULL
@@ -272,7 +220,7 @@ if __name__ == "__main__":
 
     raw_user_df = pd.read_csv('users_table.csv')
     raw_card_df = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
-    #raw_store_df = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
+    raw_store_df = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
     raw_product_df = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', file_name='local_products.csv')
     raw_orders_df = pd.read_csv('orders_table.csv')
     raw_date_events_df = pd.DataFrame(extractor.retrieve_json_data(url='https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json'))
@@ -283,8 +231,8 @@ if __name__ == "__main__":
     print(cleaning.clean_user_data(raw_user_df))
     print(cleaning.clean_card_data(raw_card_df))
     print(raw_card_df.columns)
-    #print(cleaning.clean_store_data(raw_store_df).columns)
-    #print(raw_store_df.columns)
+    print(cleaning.clean_store_data(raw_store_df).columns)
+    print(raw_store_df.columns)
     print(cleaned_weights_df['weight'].head())
     print(raw_product_df.columns)
     print(cleaning.clean_products_data(raw_product_df))
