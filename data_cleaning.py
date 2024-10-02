@@ -76,6 +76,14 @@ class DataCleaning:
 
         card_df['date_payment_confirmed'] = card_df['date_payment_confirmed'].mask(~card_df['date_payment_confirmed'].str.contains(valid_pattern, na=False))
 
+        invalid_pattern = r'^[A-Z0-9]{10}$'
+
+        card_df = card_df[~card_df['card_number'].str.match(invalid_pattern, na=False)]
+
+        card_df = card_df.drop('Unnamed: 0', axis=1)
+
+        card_df = card_df.dropna(how='all', subset=card_df.columns.difference(['index']))
+
         # #Drop nan and duplicates for card_number column
         # card_df = card_df.dropna(subset=['card_number'])
         # card_df = card_df.drop_duplicates(subset=['card_number'])
@@ -106,6 +114,8 @@ class DataCleaning:
         #Filters stores which have a number in their index but all other cells are NaN
         store_df = store_df[~(store_df.iloc[:, 1:].isna().all(axis=1) & store_df['index'].apply(lambda x: isinstance(x, (int, float))))]
 
+        store_df = store_df.drop('Unnamed: 0', axis=1)
+
         #Turn NULL values to NaN values
         store_df = store_df.replace(['NULL', 'N/A', ''], pd.NA)
         
@@ -127,9 +137,17 @@ class DataCleaning:
             store_df['continent'] = store_df['continent'].replace('eeAmerica', 'America', regex=True)
         print(type(store_df))
 
+        store_df = store_df.dropna(how='all', subset=store_df.columns.difference(['index']))
+
         # Remove rows where all values are NaN
         store_df = store_df.dropna(how='all')
         print(type(store_df))
+
+        # Remove duplicate rows, if any
+        store_df = store_df.drop_duplicates()
+        print(type(store_df))
+
+        print(f"These are the store columns: ", store_df.columns)
 
         print(type(store_df))
         return store_df
@@ -235,6 +253,18 @@ class DataCleaning:
 
         products_df = self.convert_product_weights(products_df) #assigning clean weights to the products_df
 
+        products_df = products_df.dropna(how='all', subset=products_df.columns.difference(['index', 'weight']))
+
+        #Get rid of nonsense codes
+
+        invalid_pattern = r'^[A-Z0-9]{10}$'
+
+        products_df = products_df[~products_df['product_price'].str.match(invalid_pattern, na=False)]
+
+        # Comment out if necessary
+        products_df = products_df.dropna(how='all')
+        products_df = products_df.drop_duplicates()
+
         return products_df
 
     def clean_orders_data(self, orders_df):
@@ -251,10 +281,10 @@ class DataCleaning:
         orders_df = orders_df.drop(columns=['level_0'])
         
         # Ensure Card Numbers Have Valid Length:
-        orders_df = orders_df[orders_df['card_number'].astype(str).str.len().between(13, 19)]
+        # orders_df = orders_df[orders_df['card_number'].astype(str).str.len().between(13, 19)]
 
-        #Ensure card_number is a string
-        orders_df['card_number'] = orders_df['card_number'].astype(str)
+        # #Ensure card_number is a string
+        # orders_df['card_number'] = orders_df['card_number'].astype(str)
 
         return orders_df
     
@@ -300,16 +330,21 @@ if __name__ == "__main__":
     extractor = DataExtractor()
     cleaning = DataCleaning()
 
-    raw_user_df = pd.read_csv('users_table.csv')
-    raw_card_df = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
-    raw_store_df = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
-    raw_product_df = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', file_name='local_products.csv')
-    raw_orders_df = pd.read_csv('orders_table.csv')
-    raw_date_events_df = pd.DataFrame(extractor.retrieve_json_data(url='https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json'))
+    # raw_user_df = pd.read_csv('users_table.csv')
+    # raw_card_df = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
+    # raw_store_df = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
+    # raw_product_df = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', file_name='local_products.csv')
+    # raw_orders_df = pd.read_csv('orders_table.csv')
+    # raw_date_events_df = pd.DataFrame(extractor.retrieve_json_data(url='https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json'))
 
+    raw_user_df = pd.read_csv('user_table.csv')
+    raw_card_df = pd.read_csv('card_table.csv')
+    raw_store_df = pd.read_csv('store_table.csv')
+    raw_product_df = pd.read_csv('products_table.csv')
+    raw_orders_df = pd.read_csv('orders_table.csv')
+    raw_date_events_df = pd.read_csv('date_events_table.csv')
 
     cleaned_weights_df = cleaning.convert_product_weights(raw_product_df)
-
 
     print(cleaning.clean_user_data(raw_user_df))
     print(cleaning.clean_card_data(raw_card_df))
