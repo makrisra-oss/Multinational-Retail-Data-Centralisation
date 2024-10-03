@@ -160,7 +160,3 @@ if __name__ == "__main__":
     date_events_df = extractor.retrieve_json_data(url='https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json')
 
     print(date_events_df)
-    # if num_stores is not None:
-    #     print(f"Total number of stores: {num_stores}")
-    # else:
-    #     print("Failed to retrieve the number of stores.")

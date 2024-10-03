@@ -37,36 +37,14 @@ class DataCleaning:
     
 
     def clean_card_data(self, card_df: pd.DataFrame):
-        # print(f"fk value: ", card_df.isin(['4971858637664481']))
-
-        # result = card_df.query('card_number == "4971858637664481"')
-
-        # print(f"Result of query: ", result)
-
-        
         # Remove rows where all values are NULL
         card_df = card_df.dropna(how='all')
 
         # Remove duplicates
         card_df = card_df.drop_duplicates()
-        
-        # # Ensure Card Numbers Have Valid Length:
-        # card_df = card_df[card_df['card_number'].astype(str).str.len().between(13, 19)]
 
         # Replace ? with ''
         card_df['card_number'] = card_df['card_number'].replace('\\?', '', regex=True)
-
-
-        # Remove rows with missing critical information
-        # card_df = card_df.dropna(subset=['card_number', 'card_provider', 'expiry_date'])
-
-        # Convert expiration date to datetime and remove expired cards
-        # card_df['expiry_date'] = pd.to_datetime(card_df['expiry_date'], errors='coerce')
-        # current_date = pd.to_datetime('today')
-        # card_df.loc[card_df['expiry_date'] <= current_date, 'expiry_date'] = np.nan
-
-        # Strip whitespace from text fields
-        # card_df['card_provider'] = card_df['card_provider'].str.strip()
 
         # Correct date_payment_confirmed
         """"""
@@ -84,13 +62,6 @@ class DataCleaning:
 
         card_df = card_df.dropna(how='all', subset=card_df.columns.difference(['index']))
 
-        # #Drop nan and duplicates for card_number column
-        # card_df = card_df.dropna(subset=['card_number'])
-        # card_df = card_df.drop_duplicates(subset=['card_number'])
-
-        # #Ensure card_number is a string
-        # card_df['card_number'] = card_df['card_number'].astype(str)
-        """"""
         return card_df
     
 
@@ -99,10 +70,6 @@ class DataCleaning:
         # Turn store_df series into df
         store_df = pd.DataFrame(store_df)
         print(type(store_df))
-
-        #Drop 'lat' column
-        # store_df = store_df.drop(columns=['lat'])
-        # print(type(store_df))
 
         pattern = r'^[A-Za-z0-9]{10}$' #Pattern for 10 alphanumeric characters
         store_df = store_df.replace(pattern, value=np.nan, regex=True)
@@ -211,19 +178,6 @@ class DataCleaning:
 
         print(f"Nankg row printed: ", products_df)
 
-
-        #Remove nonsense string names
-        # products_df = products_df[~products_df['product_name'].str.match(r'^[A-Za-z]+[0-9]+$', na=False)]
-
-        # nonsense_mask = products_df['product_name'].str.contains(r'^[A-Za-z0-9]+$', na=False)
-        # products_df = products_df[~nonsense_mask]
-
-        # Create the mask to identify nonsense product names
-        # nonsense_mask = products_df['product_name'].str.contains(r'^[A-Za-z0-9]+$', na=False)
-
-        # # Use .mask() to replace rows where the condition is True with NaN, and then drop NaN rows
-        # products_df = products_df.mask(nonsense_mask).dropna()
-
         # Remove duplicates
         products_df = products_df.drop_duplicates()
 
@@ -279,12 +233,6 @@ class DataCleaning:
         orders_df = orders_df.drop(columns=['1'])
         # orders_df = orders_df.drop(columns=['Unnamed: 0'])
         orders_df = orders_df.drop(columns=['level_0'])
-        
-        # Ensure Card Numbers Have Valid Length:
-        # orders_df = orders_df[orders_df['card_number'].astype(str).str.len().between(13, 19)]
-
-        # #Ensure card_number is a string
-        # orders_df['card_number'] = orders_df['card_number'].astype(str)
 
         return orders_df
     
@@ -299,21 +247,6 @@ class DataCleaning:
         date_events_df = date_events_df.where(date_events_df['date_uuid'].str.contains(valid_pattern))
         
         print(f"is na sum after: ", date_events_df['date_uuid'].isna().sum())
-        # print(f"is na sum after: ", date_events_df)
-
-        #Match day, month, year:
-
-        # day_pattern = r'^[0-9]{1,2}$'
-
-        # date_events_df = date_events_df.where(date_events_df['day'].str.contains(day_pattern))
-
-        # month_pattern = r'^[0-9][0-2]{1}$'
-
-        # date_events_df = date_events_df.where(date_events_df['month'].str.contains(month_pattern))
-
-        # year_pattern = r'^[1-2][0-9]{3}$'
-
-        # date_events_df = date_events_df.where(date_events_df['year'].str.contains(year_pattern))
         
         #Drop na
         date_events_df = date_events_df.dropna(how='all')

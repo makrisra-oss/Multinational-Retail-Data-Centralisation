@@ -118,22 +118,5 @@ if __name__ == "__main__":
     table_list = connector.list_db_tables()
     print(f"table list:", table_list)
 
-    # df = connector.extract_rds_table(engine)
-    # df.to_csv("users_table.csv")
-
-
-
-    # if engine:
-    #     print("Database engine created successfully.")
-    #     # You can now use this engine to interact with your database
-    # else:
-    #     print("Failed to create database engine.")
-
-    # tables = connector.list_db_tables()
-    # if tables:
-    #     print(f"Successfully retrieved {len(tables)} tables.")
-    # else:
-    #     print("Failed to retrieve database tables.")
-
 
     

@@ -97,6 +97,5 @@ def user_pipeline():
     
     
     print(upload_result)
-    # print(cleaning.clean_user_data.unique())
 
 user_pipeline()
