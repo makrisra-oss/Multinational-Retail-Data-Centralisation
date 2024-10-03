@@ -47,7 +47,6 @@ class DataCleaning:
         card_df['card_number'] = card_df['card_number'].replace('\\?', '', regex=True)
 
         # Correct date_payment_confirmed
-        """"""
         print(f"type date_payment_confirmed: ", type(card_df['date_payment_confirmed']))
 
         valid_pattern = r'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
