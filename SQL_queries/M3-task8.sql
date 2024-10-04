@@ -1,22 +1,3 @@
-
--- SELECT *
--- FROM dim_card_details
--- WHERE card_number IS NULL;
-
--- SELECT * FROM dim_products
--- WHERE product_code IS NULL;
-
--- DELETE FROM dim_products
--- WHERE product_code IS NULL;
-
-
--- DELETE FROM dim_card_details
--- WHERE card_number NOT IN (
---     SELECT MIN(card_number)
---     FROM dim_card_details
---     GROUP BY card_number
--- );
-
 ALTER TABLE dim_card_details
 ADD PRIMARY KEY (card_number);
 
@@ -41,11 +22,6 @@ ADD CONSTRAINT fk_user_uuid
 FOREIGN KEY (user_uuid)
 REFERENCES dim_users (user_uuid);
 
--- DELETE FROM dim_store_details
--- WHERE store_code IS NULL;
-
-
-
 ALTER TABLE dim_store_details
 ADD PRIMARY KEY (store_code);
 
@@ -62,17 +38,6 @@ ADD CONSTRAINT fk_product_code
 FOREIGN KEY (product_code)
 REFERENCES dim_products (product_code);
 
-
-
--- SELECT *
--- FROM dim_products;
-
--- SELECT product_code
--- FROM orders_table;
-
--- SELECT * FROM orders_table
--- WHERE date_uuid NOT IN(SELECT dim_date_times.date_uuid FROM dim_date_times);
-
 -- DROP TABLE dim_card_details CASCADE;
 
 -- DROP TABLE dim_date_times CASCADE;
@@ -87,8 +52,3 @@ REFERENCES dim_products (product_code);
 
 SELECT *
 FROM dim_card_details;
-
--- SELECT *
--- FROM dim_card_details car
--- WHERE NOT EXISTS (SELECT * FROM orders_table ord
--- WHERE car.card_number = ord.card_number);

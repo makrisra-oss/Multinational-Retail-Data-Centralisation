@@ -38,13 +38,6 @@ WHERE CAST(REPLACE(weight, 'kg', '') AS FLOAT) >= 140;
 UPDATE dim_products
 SET weight = REPLACE(weight, 'kg', '');
 
--- SELECT *
--- FROM dim_products;
-
--- SELECT *
--- FROM dim_products
--- WHERE weight_class = 'Truck_Required';
-
 SELECT *
 FROM dim_products;
 

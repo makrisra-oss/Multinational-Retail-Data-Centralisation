@@ -1,12 +1,15 @@
+-- SELECT *
+-- FROM dim_store_details
+
 ALTER TABLE dim_store_details
 	ALTER COLUMN latitude TYPE FLOAT
 	USING latitude::FLOAT;
 
--- UPDATE dim_store_details
--- SET latitude = COALESCE(lat, latitude);
+UPDATE dim_store_details
+SET latitude = COALESCE(lat, latitude);
 
--- ALTER TABLE dim_store_details
--- DROP COLUMN lat;
+ALTER TABLE dim_store_details
+DROP COLUMN lat;
 
 -- SELECT *
 -- FROM dim_store_details;
@@ -49,8 +52,8 @@ ALTER TABLE dim_store_details
 	ALTER COLUMN latitude TYPE FLOAT
 	USING latitude::FLOAT;
 
-SELECT MAX(LENGTH(country_code)) AS max_length
-FROM dim_store_details;
+-- SELECT MAX(LENGTH(country_code)) AS max_length
+-- FROM dim_store_details;
 
 ALTER TABLE dim_store_details
 	ALTER COLUMN country_code TYPE VARCHAR(2)

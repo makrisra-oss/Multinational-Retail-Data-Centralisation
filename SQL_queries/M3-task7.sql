@@ -5,10 +5,6 @@ ALTER TABLE dim_card_details
 	ALTER COLUMN "card_number" TYPE VARCHAR(19)
 	USING "card_number"::VARCHAR(19);
 
-ALTER TABLE dim_card_details
-	ALTER COLUMN "expiry_date" TYPE TEXT
-	USING "expiry_date"::TEXT;
-
 -- SELECT MAX(LENGTH("expiry_date")) AS max_length
 -- FROM dim_card_details;
 
