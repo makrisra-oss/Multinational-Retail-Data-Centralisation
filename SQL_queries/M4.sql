@@ -35,10 +35,6 @@
 
 -- -- Task 4
 
--- -- ALTER TABLE dim_products
--- -- 	ALTER COLUMN product_price TYPE FLOAT
--- -- 	USING product_price::FLOAT;
-
 -- SELECT 
 --     CASE 
 --         WHEN dim_store_details.store_type = 'Web Portal' THEN 'Online' 
