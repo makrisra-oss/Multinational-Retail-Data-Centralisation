@@ -10,27 +10,21 @@ class DataExtractor:
     def __init__(self):
         pass
 
-    def read_rds_table(self, db_connector, table_name):
-
-        db_connector.engine = db_connector.init_db_engine("db_creds_RDS.yaml")
+    def read_rds_table(self, db_connector, table_name, yaml_file):
+        db_connector.engine = db_connector.init_db_engine(yaml_file)
         query = f"SELECT * FROM {table_name}"
         df = pd.read_sql(query, db_connector.engine)
-
-
         return df
 
     def read_csv_file(self, file_path):
-        
         try:
             df = pd.read_csv(file_path)
             return df
-        
         except Exception as e:
             print(f"Error reading CSV file: {e}")
             return None
 
     def extract_from_api(self, api_url, headers=None):
-        
         try:
             response = requests.get(api_url, headers=headers)
             response.raise_for_status()
@@ -42,17 +36,13 @@ class DataExtractor:
     def extract_from_s3(self, bucket_name, object, file_name):
         s3 = boto3.client('s3')
         s3.download_file(bucket_name, object, file_name)
-
         df = pd.read_csv(file_name)
-
         return df
 
     def retrieve_json_data(self, url):
-
         with urllib.request.urlopen("https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json") as url:
             df = json.load(url)
         return df
-    
         
     def retrieve_pdf_data(self, pdf_link):
         """
@@ -61,9 +51,7 @@ class DataExtractor:
         :param pdf_link: URL or file path of the PDF
         :return: pandas DataFrame containing the extracted data
         """
-    
         tables = tabula.read_pdf(pdf_link, pages='all', multiple_tables=True)
-        
         # Combine all tables into a single DataFrame
         if tables:
             combined_df = pd.concat(tables, ignore_index=True)
@@ -82,43 +70,29 @@ class DataExtractor:
         """
         response = requests.get(endpoint, headers=headers)
         response.raise_for_status() # Raises an HTTPError for bad responses
-
         data = response.json()
-        number_of_stores = data.get('number_of_stores')
-        # print(number_of_stores)
         print(data)
         return data['number_stores']
     
-    
-    
     @staticmethod
-    def retrieve_stores_data(endpoint):
+    def retrieve_stores_data(endpoint, yaml_file):
     # Create another method retrieve_stores_data which will take the retrieve a store endpoint as an argument
     # and extracts all the stores from the API saving them in a pandas DataFrame.
         store_data_list = []
         store_numbers = list(range(0, 451))
-
         for store_number in store_numbers:
-
-                api_url = endpoint.format(store_number=store_number)
-                headers = {
-                "x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"
-                }
-
-                response = requests.get(api_url, headers=headers)
+                api_url = endpoint.format(store_number=store_number)  
+                headers_1 = yaml_file
+                response = requests.get(api_url, headers=headers_1)
                 response.raise_for_status() #HTTP error for bad responses
                 print(response)
-        
                 data = response.json()
                 store_data_list.append(data)
-
                 print(data)
 
         df = pd.DataFrame(store_data_list)
         return df
-
-
-        
+           
 if __name__ == "__main__":
     extractor = DataExtractor()
     connector = DatabaseConnector()
@@ -126,14 +100,11 @@ if __name__ == "__main__":
     # API endpoints and headers
     retrieve_a_store_endpoint = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}"
     number_stores_endpoint = "https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores"
-    headers = {
-        "x-api-key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"
-    }
+    headers = connector.read_db_creds("api_key.yaml")
 
     # Retrieve a store
-    store_df = extractor.retrieve_stores_data(retrieve_a_store_endpoint)
+    store_df = extractor.retrieve_stores_data(retrieve_a_store_endpoint, yaml_file=connector.read_db_creds("api_key.yaml"))
     print(store_df)
-
     store_numbers = list(range(1, 452))
 
     # Retrieve number of stores
@@ -141,11 +112,11 @@ if __name__ == "__main__":
     print(num_stores)
 
     # #Retrieve and read RDS table legacy_users
-    read_rds_users = extractor.read_rds_table(db_connector=connector, table_name='legacy_users')
+    read_rds_users = extractor.read_rds_table(db_connector=connector, table_name='legacy_users', yaml_file="db_creds_RDS.yaml")
     print(read_rds_users)
 
     # #Retrieve and read RDS table orders
-    read_rds_orders = extractor.read_rds_table(db_connector=connector, table_name='orders_table')
+    read_rds_orders = extractor.read_rds_table(db_connector=connector, table_name='orders_table', yaml_file="db_creds_RDS.yaml")
     print(f"Read RDS Orders: ", read_rds_orders)
 
     # # # #Retreive PDF data
@@ -158,5 +129,5 @@ if __name__ == "__main__":
     
     #Retrieve date_events
     date_events_df = extractor.retrieve_json_data(url='https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json')
-
     print(date_events_df)
+    

@@ -11,32 +11,30 @@ cleaning = DataCleaning()
 def user_pipeline():
     connector_RDS = DatabaseConnector()
     engine_RDS = connector_RDS.init_db_engine("db_creds_RDS.yaml")
-
     if engine_RDS:
         print("Database engine created successfully.")
     # You can now use this engine to interact with your database
     else:
         print("Failed to create database engine.")
-
     tables = connector.list_db_tables()
     if tables:
         print(f"Successfully retrieved {len(tables)} tables.")
     else:
         print("Failed to retrieve database tables.")
 
-    # user_table = extractor.read_rds_table(connector, "legacy_users")
-    # card_table = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
-    # store_table = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
-    # products_table = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', file_name='local_products.csv')
-    # orders_table = extractor.read_rds_table(connector, table_name='orders_table')
-    # date_events_table = pd.DataFrame(extractor.retrieve_json_data(url="https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json"))
+    user_table = extractor.read_rds_table(connector, "legacy_users")
+    card_table = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
+    store_table = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
+    products_table = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', file_name='local_products.csv')
+    orders_table = extractor.read_rds_table(connector, table_name='orders_table')
+    date_events_table = pd.DataFrame(extractor.retrieve_json_data(url="https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json"))
 
-    # user_table.to_csv('user_table.csv')
-    # card_table.to_csv('card_table.csv')
-    # store_table.to_csv('store_table.csv')
-    # products_table.to_csv('products_table.csv')
-    # orders_table.to_csv('orders_table.csv')
-    # date_events_table.to_csv('date_events_table.csv')
+    user_table.to_csv('user_table.csv')
+    card_table.to_csv('card_table.csv')
+    store_table.to_csv('store_table.csv')
+    products_table.to_csv('products_table.csv')
+    orders_table.to_csv('orders_table.csv')
+    date_events_table.to_csv('date_events_table.csv')
 
     user_table = pd.read_csv('user_table.csv')
     card_table = pd.read_csv('card_table.csv')
@@ -44,7 +42,6 @@ def user_pipeline():
     products_table = pd.read_csv('products_table.csv')
     orders_table = pd.read_csv('orders_table.csv')
     date_events_table = pd.read_csv('date_events_table.csv')
-
 
     cleaned_user_data = cleaning.clean_user_data(user_table)
     cleaned_card_data = cleaning.clean_card_data(card_table)
@@ -54,7 +51,6 @@ def user_pipeline():
     cleaned_date_events_data = cleaning.clean_date_events_data(date_events_table)
 
     connector_local = DatabaseConnector()
-
     engine_local = connector_local.init_db_engine("db_creds_local.yaml")
 
     if engine_local:
@@ -94,7 +90,6 @@ def user_pipeline():
     print(f"test: {type(cleaned_date_events_data)}")
     print(len(cleaned_date_events_data))
     print(cleaned_date_events_data)
-    
     
     print(upload_result)
 

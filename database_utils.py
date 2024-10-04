@@ -13,7 +13,6 @@ class DatabaseConnector:
         Reads the database credentials from the db_creds.yaml file
         and returns them as a dictionary.
         """
-
         with open(yaml_file, 'r') as file:
             credentials = yaml.safe_load(file)
         return credentials
@@ -23,14 +22,12 @@ class DatabaseConnector:
         Initializes and returns an SQLAlchemy database engine
         using the credentials from read_db_creds.
         """
-
         credentials = self.read_db_creds(yaml_file)
         engine = create_engine(f"postgresql://{credentials['USER']}:{credentials['PASSWORD']}@{credentials['HOST']}:{credentials['PORT']}/{credentials['DATABASE']}")
         return engine
             
 
-    def list_db_tables(self):
-        
+    def list_db_tables(self): 
         inspector = inspect(self.init_db_engine("db_creds_RDS.yaml"))
         tables = inspector.get_table_names()
         for table in tables:
@@ -45,7 +42,6 @@ class DatabaseConnector:
         :param df: Pandas DataFrame to upload
         :param table_name: Name of the table to upload the data to
         """
-        
         # Upload pandas df to db
         df.to_sql(table_name, self.init_db_engine('db_creds_local.yaml'), if_exists='replace')
         result = f"Data successfully uploaded to table '{table_name}'."
@@ -59,19 +55,15 @@ class DatabaseConnector:
         # Step 1: Extract user data
         print("Extracting user data...")
         user_data = self.extractor.retrieve_user_data(self)
-        
         if user_data is not None:
             print(f"Retrieved {len(user_data)} rows of user data.")
-            
             # Step 2: Clean user data
             print("Cleaning user data...")
             cleaned_user_data = self.data_cleaner.clean_user_data(user_data)
             print(f"Cleaned data now has {len(cleaned_user_data)} rows.")
-            
             # Step 3: Upload cleaned data to the database
             print("Uploading cleaned user data to database...")
             self.upload_to_db(cleaned_user_data, 'dim_users')
-            
             print("Process completed successfully.")
         else:
             print("Failed to retrieve user data. Process aborted.")
@@ -82,23 +74,18 @@ class DatabaseConnector:
         
         :param pdf_link: URL or file path of the PDF document containing card data
         """
-
         # Step 1: Extract card data from PDF
         print("Extracting card data from PDF...")
         card_data = self.data_extractor.retrieve_pdf_data(url)
-        
         if card_data is not None:
             print(f"Retrieved {len(card_data)} rows of card data.")
-            
             # Step 2: Clean card data
             print("Cleaning card data...")
             cleaned_card_data = self.data_cleaner.clean_card_data(card_data)
-            print(f"Cleaned data now has {len(cleaned_card_data)} rows.")
-            
+            print(f"Cleaned data now has {len(cleaned_card_data)} rows.") 
             # Step 3: Upload cleaned data to the database
             print("Uploading cleaned card data to database...")
             self.upload_to_db(cleaned_card_data, 'dim_card_details')
-            
             print("Process completed successfully.")
         else:
             print("Failed to retrieve card data from PDF. Process aborted.")
@@ -111,10 +98,8 @@ class DatabaseConnector:
 if __name__ == "__main__":
     connector = DatabaseConnector()
     cleaning = DataCleaning()
-    
     engine = connector.init_db_engine("db_creds_local.yaml")
     print(engine)
-
     table_list = connector.list_db_tables()
     print(f"table list:", table_list)
 
