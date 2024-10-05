@@ -9,6 +9,13 @@ cleaning = DataCleaning()
 
 
 def user_pipeline():
+    """
+    Main pipeline combining all three classes (DatabaseConnector, DataExtractor and DataCleaning).
+
+    Performs the main Extract, Transform and Load (ETL) operations needed for the project.
+
+    Extractor method calls can be commented out for brevity and the CSV files can just be read instead once data has been extracted.
+    """
     connector_RDS = DatabaseConnector()
     engine_RDS = connector_RDS.init_db_engine("db_creds_RDS.yaml")
     if engine_RDS:

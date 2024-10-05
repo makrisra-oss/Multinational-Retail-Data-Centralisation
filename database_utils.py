@@ -5,6 +5,12 @@ import pandas as pd
 from data_cleaning import DataCleaning
 
 class DatabaseConnector:
+    """This class is for connecting to both the external and local databases.
+
+    Attributes:
+        engine: connect to database engine.
+    """
+    
     def __init__(self):
         self.engine = None
 
@@ -27,11 +33,20 @@ class DatabaseConnector:
         return engine
             
 
-    def list_db_tables(self): 
+    def list_db_tables(self):
+        """
+        List all table names in the connected database.
+
+        Returns:
+            list: A list of table names in the database.
+
+        Prints:
+            The name of each table in the connected database.
+        """
         inspector = inspect(self.init_db_engine("db_creds_RDS.yaml"))
         tables = inspector.get_table_names()
         for table in tables:
-            print(f"table names- {table}")
+        print(f"table names- {table}")
         return tables
 
 
@@ -91,11 +106,22 @@ class DatabaseConnector:
             print("Failed to retrieve card data from PDF. Process aborted.")
 
     def upload_clean_store_data(self, df):
+        """
+        Method uploads the clean store data to the local database.
+
+        Args: takes a dataframe as a parameter
+
+        Returns: the clean store data database locally. 
+        """
         cleaned_store_data = cleaning.clean_store_data(df)
         return cleaned_store_data
 
 # Example usage:
 if __name__ == "__main__":
+    """
+    If name == main:
+    Instantiates my classes and runs instances of my methods.
+    """
     connector = DatabaseConnector()
     cleaning = DataCleaning()
     engine = connector.init_db_engine("db_creds_local.yaml")

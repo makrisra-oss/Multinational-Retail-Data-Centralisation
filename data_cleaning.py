@@ -5,10 +5,28 @@ from datetime import datetime
 import tabula
 
 class DataCleaning:
+    """
+    DataCleaning class to clean all my extracted data transforming before upload to the local database.
+    """
     def __init__(self):
+        """
+        Initialize an instance of the class.
+
+        This constructor is currently a placeholder and does not perform any specific 
+        initialization.
+        """
         pass
 
     def clean_user_data(self, user_df: pd.DataFrame):
+        """
+        Method to clean the users data
+
+        Args:
+            user_df: (as a pd.DataFrame)
+
+        Returns:
+            user dataframe
+        """
         # drop null values if every value n/a
         user_df = user_df.dropna(how='all')
         print(user_df.isnull().sum())
@@ -31,6 +49,15 @@ class DataCleaning:
     
 
     def clean_card_data(self, card_df: pd.DataFrame):
+        """
+        Method to clean card data.
+
+        Args:
+            card_df
+
+        Returns:
+            card dataframe
+        """
         # Remove rows where all values are NULL
         card_df = card_df.dropna(how='all')
         # Remove duplicates
@@ -49,6 +76,15 @@ class DataCleaning:
     
 
     def clean_store_data(self, store_df: pd.DataFrame):
+        """
+        Method to clean store data.
+
+        Args:
+            store_df
+
+        Returns:
+            store_dataframe
+        """
         # Turn store_df series into df
         store_df = pd.DataFrame(store_df)
         print(type(store_df))
@@ -89,6 +125,15 @@ class DataCleaning:
     
     @staticmethod
     def convert_product_weights(product_df):
+        """
+        Static method to clean product weights
+
+        Args:
+            product_df
+
+        Returns:
+            product dataframe
+        """
         converted_weights = []
         # Iterate over each weight value in the product_df 'weight' column
         for item in product_df['weight']:
@@ -122,6 +167,15 @@ class DataCleaning:
         return product_df
 
     def clean_products_data(self, products_df):
+        """
+        Method to clean the product data once weights have been converted.
+
+        Args:
+            products_df
+        
+        Returns:
+            products dataframe
+        """
          # Invalid pattern to identify strings with unwanted characters around the weight
         invalid_pattern = r'\s*\.?\s*(\w+\.?\w+)\s*\.?\s*'
         # Correctly formatted pattern that we want to achieve
@@ -166,6 +220,15 @@ class DataCleaning:
         return products_df
 
     def clean_orders_data(self, orders_df):
+        """
+        Method to clean orders data
+
+        Args:
+            orders_df
+
+        Returns:
+            orders dataframe
+        """
         #Drop rows which are NULL
         orders_df = orders_df.dropna(how='all')
         print(orders_df)
@@ -180,6 +243,15 @@ class DataCleaning:
         return orders_df
     
     def clean_date_events_data(self, date_events_df):
+        """
+        Method to clean date events data
+
+        Args:
+            date_events_df
+
+        Returns:
+            date_events dataframe
+        """
         #Replace nonsense strings with nan
         valid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
         # date_events_df = date_events_df[~date_events_df['date_uuid'].str.contains(valid_pattern, na=False)]
@@ -196,6 +268,12 @@ class DataCleaning:
         
 
 if __name__ == "__main__":
+    """
+    name == main:
+        Instnatiates classes and methods with printouts to check whether cleaning was successful.
+
+        The extractor method call dfs can be commented out to just read from the csv for brevity.
+    """
     from data_extraction import DataExtractor
     extractor = DataExtractor()
     cleaning = DataCleaning()
