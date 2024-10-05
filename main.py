@@ -29,11 +29,11 @@ def user_pipeline():
     else:
         print("Failed to retrieve database tables.")
 
-    user_table = extractor.read_rds_table(connector, "legacy_users")
+    user_table = extractor.read_rds_table(connector, "legacy_users", yaml_file="db_creds_RDS.yaml")
     card_table = extractor.retrieve_pdf_data(pdf_link='https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf')
-    store_table = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}")
+    store_table = extractor.retrieve_stores_data(endpoint="https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/{store_number}", yaml_file=connector.read_db_creds("api_key.yaml"))
     products_table = extractor.extract_from_s3(bucket_name='data-handling-public', object='products.csv', file_name='local_products.csv')
-    orders_table = extractor.read_rds_table(connector, table_name='orders_table')
+    orders_table = extractor.read_rds_table(connector, table_name='orders_table', yaml_file="db_creds_RDS.yaml")
     date_events_table = pd.DataFrame(extractor.retrieve_json_data(url="https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json"))
 
     user_table.to_csv('user_table.csv')

@@ -46,7 +46,7 @@ class DatabaseConnector:
         inspector = inspect(self.init_db_engine("db_creds_RDS.yaml"))
         tables = inspector.get_table_names()
         for table in tables:
-        print(f"table names- {table}")
+            print(f"table names- {table}")
         return tables
 
 
@@ -62,59 +62,6 @@ class DatabaseConnector:
         result = f"Data successfully uploaded to table '{table_name}'."
         print(result)
         return result
-
-    def extract_clean_upload_users(self):
-        """
-        Extracts user data, cleans it, and uploads it to the 'dim_users' table in the database.
-        """
-        # Step 1: Extract user data
-        print("Extracting user data...")
-        user_data = self.extractor.retrieve_user_data(self)
-        if user_data is not None:
-            print(f"Retrieved {len(user_data)} rows of user data.")
-            # Step 2: Clean user data
-            print("Cleaning user data...")
-            cleaned_user_data = self.data_cleaner.clean_user_data(user_data)
-            print(f"Cleaned data now has {len(cleaned_user_data)} rows.")
-            # Step 3: Upload cleaned data to the database
-            print("Uploading cleaned user data to database...")
-            self.upload_to_db(cleaned_user_data, 'dim_users')
-            print("Process completed successfully.")
-        else:
-            print("Failed to retrieve user data. Process aborted.")
-
-    def clean_and_upload_card_data(self, url = "https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf"):
-        """
-        Extracts card data from a PDF, cleans it, and uploads it to the 'dim_card_details' table in the database.
-        
-        :param pdf_link: URL or file path of the PDF document containing card data
-        """
-        # Step 1: Extract card data from PDF
-        print("Extracting card data from PDF...")
-        card_data = self.data_extractor.retrieve_pdf_data(url)
-        if card_data is not None:
-            print(f"Retrieved {len(card_data)} rows of card data.")
-            # Step 2: Clean card data
-            print("Cleaning card data...")
-            cleaned_card_data = self.data_cleaner.clean_card_data(card_data)
-            print(f"Cleaned data now has {len(cleaned_card_data)} rows.") 
-            # Step 3: Upload cleaned data to the database
-            print("Uploading cleaned card data to database...")
-            self.upload_to_db(cleaned_card_data, 'dim_card_details')
-            print("Process completed successfully.")
-        else:
-            print("Failed to retrieve card data from PDF. Process aborted.")
-
-    def upload_clean_store_data(self, df):
-        """
-        Method uploads the clean store data to the local database.
-
-        Args: takes a dataframe as a parameter
-
-        Returns: the clean store data database locally. 
-        """
-        cleaned_store_data = cleaning.clean_store_data(df)
-        return cleaned_store_data
 
 # Example usage:
 if __name__ == "__main__":

@@ -159,7 +159,6 @@ class DataExtractor:
                 data = response.json()
                 store_data_list.append(data)
                 print(data)
-
         df = pd.DataFrame(store_data_list)
         return df
            
